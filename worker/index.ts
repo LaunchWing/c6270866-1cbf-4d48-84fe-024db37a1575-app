@@ -1,0 +1,121 @@
+// Auto-generated entrypoint for Cloudflare Worker
+
+import { ResumeGeneratorBackendHandler } from './api/ResumeGeneratorBackend';
+import { AITemplateEngineHandler } from './api/AITemplateEngine';
+import { IndustryDataDatabaseHandler } from './api/IndustryDataDatabase';
+
+const INDEX_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResuMate - AI-Powered Resume Templates</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMf0J7G5i0vFpcD0R+5e3G6z7j5/4M9fTQf7v3" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-white text-gray-800">
+    <header class="bg-blue-500 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <img src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-eeM7RLe3Wv2HZ7Toub47POas/user-rnGwZEmjnwoUoF8lEvadvt0O/img-vbNygZInEA2MBhDyscUVkzHe.png?st=2025-07-28T02%3A51%3A42Z&se=2025-07-28T04%3A51%3A42Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-27T16%3A06%3A47Z&ske=2025-07-28T16%3A06%3A47Z&sks=b&skv=2024-08-04&sig=zCE0VYuz9JEGIVHo5KfD417p6hzch7iQaSnQAb1FNiU%3D" alt="ResuMate Logo" class="h-12">
+            <h1 class="text-xl font-bold">ResuMate</h1>
+            <p class="text-sm">Your AI-Powered Path to the Perfect Resume</p>
+        </div>
+    </header>
+    <main class="container mx-auto my-8">
+        <section class="bg-green-50 p-6 rounded shadow-md">
+            <h2 class="text-2xl font-bold text-blue-500">Generate Your Resume</h2>
+            <form id="resume-form" class="mt-4">
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                    <input type="text" id="name" name="name" class="mt-1 p-2 block w-full border border-gray-300 rounded-md" placeholder="Your Name" required>
+                </div>
+                <div class="mb-4">
+                    <label for="job-role" class="block text-sm font-medium text-gray-700">Job Role</label>
+                    <select id="job-role" name="job-role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <option value="" disabled selected>Select your job role</option>
+                        <option value="Software Engineer">Software Engineer</option>
+                        <option value="Finance Analyst">Finance Analyst</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
+                    <select id="industry" name="industry" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <option value="" disabled selected>Select your industry</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">Generate Resume</button>
+            </form>
+        </section>
+        <section id="result" class="mt-8 hidden">
+            <h2 class="text-2xl font-bold text-blue-500">Your Customized Resume</h2>
+            <div id="resume-output" class="bg-white p-4 rounded shadow-md mt-4">
+                <!-- Resume content will be dynamically generated here -->
+            </div>
+        </section>
+    </main>
+    <footer class="bg-gray-200 text-center py-4">
+        <p class="text-sm">&copy; 2023 ResuMate. All rights reserved.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
+`;
+const STYLE_CSS = `/* Custom Tailwind CSS */
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+#resume-form input, #resume-form select {
+    transition: border-color 0.3s ease;
+}
+
+#resume-form input:focus, #resume-form select:focus {
+    border-color: #4A90E2;
+}
+
+button:hover {
+    cursor: pointer;
+}`;
+const SCRIPT_JS = `document.getElementById('resume-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const name = document.getElementById('name').value;
+    const jobRole = document.getElementById('job-role').value;
+    const industry = document.getElementById('industry').value;
+
+    try {
+        const response = await fetch('/functions/api/handler.ts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, jobRole, industry })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('resume-output').innerHTML = \`<pre>\${data.resume}</pre>\`;
+            document.getElementById('result').classList.remove('hidden');
+        } else {
+            console.error('Failed to generate resume');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});`;
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (path === '/') return new Response(INDEX_HTML, { headers: { 'Content-Type': 'text/html' } });
+    if (path === '/style.css') return new Response(STYLE_CSS, { headers: { 'Content-Type': 'text/css' } });
+    if (path === '/script.js') return new Response(SCRIPT_JS, { headers: { 'Content-Type': 'application/javascript' } });
+    if (path === '/api/ResumeGeneratorBackend') return ResumeGeneratorBackendHandler(request);
+    if (path === '/api/AITemplateEngine') return AITemplateEngineHandler(request);
+    if (path === '/api/IndustryDataDatabase') return IndustryDataDatabaseHandler(request);
+    return new Response('Not found', { status: 404 });
+  }
+};
